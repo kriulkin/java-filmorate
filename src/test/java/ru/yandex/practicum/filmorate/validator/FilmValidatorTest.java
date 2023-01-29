@@ -9,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FilmValidatorTest {
+    Film film;
+    Film.FilmBuilder filmBuilder = Film.builder();
 
     @Test
      void testEmptyFilm() {
-        Film film = Film.builder()
+        film = filmBuilder
                 .build();
 
         assertThrows(ValidationException.class, () -> FilmValidator.validate(film),
@@ -21,7 +23,7 @@ public class FilmValidatorTest {
 
     @Test
     void testBlankName() {
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("")
                 .description("фильм с пустым названием")
                 .releaseDate("2015-01-01")
@@ -36,7 +38,7 @@ public class FilmValidatorTest {
     void test200CharsDescription() {
         String description = "a".repeat(200);
 
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("фильм 200 символов")
                 .description(description)
                 .releaseDate("2015-01-01")
@@ -51,7 +53,7 @@ public class FilmValidatorTest {
     void test201CharsDescription() {
         String description = "a".repeat(201);
 
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("фильм 201 символ")
                 .description(description)
                 .releaseDate("2015-01-01")
@@ -64,7 +66,7 @@ public class FilmValidatorTest {
 
     @Test
     void testReleaseDateBeforeMinDate() {
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("27 декабря 1895 года")
                 .description("27 декабря 1895 года")
                 .releaseDate("1895-12-27")
@@ -77,7 +79,7 @@ public class FilmValidatorTest {
 
     @Test
     void testReleaseDateMinDate() {
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("28 декабря 1895 года")
                 .description("28 декабря 1895 года")
                 .releaseDate("1895-12-28")
@@ -90,7 +92,7 @@ public class FilmValidatorTest {
 
     @Test
     void testZeroDurationFilm() {
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("фильм 0 минут")
                 .description("фильм 0 минут")
                 .releaseDate("2015-01-01")
@@ -103,7 +105,7 @@ public class FilmValidatorTest {
 
     @Test
     void testDurationFilm () {
-        Film film = Film.builder()
+        film = filmBuilder
                 .name("фильм 1 минут")
                 .description("фильм 0 минут")
                 .releaseDate("2015-01-01")

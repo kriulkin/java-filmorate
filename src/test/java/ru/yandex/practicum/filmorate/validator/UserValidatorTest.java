@@ -10,18 +10,20 @@ import java.text.ParseException;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserValidatorTest {
+    User user;
+    User.UserBuilder userBuilder = User.builder();
+
     @Test
     void testEmptyUser() {
-    User user = User.builder()
-            .build();
+    user = userBuilder.build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается пустой юзер");
+                "Некорректно обрабатывается пустой пользователь");
     }
 
     @Test
     void testEmailWithoutAt() {
-        User user = User.builder()
+        user = userBuilder
                 .email("test")
                 .name("test")
                 .login("test")
@@ -29,12 +31,12 @@ public class UserValidatorTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается юзер c неправильным email");
+                "Некорректно обрабатывается юзер c пользователь email");
     }
 
     @Test
     void testBlankEmail() {
-        User user = User.builder()
+        user = userBuilder
                 .email("")
                 .name("test")
                 .login("test")
@@ -42,12 +44,12 @@ public class UserValidatorTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается юзер c пустым email");
+                "Некорректно обрабатывается пользователь c пустым email");
     }
 
     @Test
     void testLoginWithSpace() {
-        User user = User.builder()
+        user = userBuilder
                 .email("test@mail.ru")
                 .name("test")
                 .login("test test")
@@ -55,12 +57,12 @@ public class UserValidatorTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается юзер c неправильным login");
+                "Некорректно обрабатывается пользователь c неправильным login");
     }
 
     @Test
     void testBlankLogin() {
-        User user = User.builder()
+        user = userBuilder
                 .email("test@mail.ru")
                 .name("test")
                 .login("")
@@ -68,12 +70,12 @@ public class UserValidatorTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается юзер c пустым login");
+                "Некорректно обрабатывается пользователь c пустым login");
     }
 
     @Test
     void testBlankName() throws ValidationException, ParseException {
-        User user = User.builder()
+        user = userBuilder
                 .email("test@mail.ru")
                 .name("")
                 .login("login")
@@ -83,12 +85,12 @@ public class UserValidatorTest {
         UserValidator.validate(user);
 
         assertEquals(user.getLogin(), user.getName(),
-        "Некорректно обрабатывается юзер c пустым name");
+        "Некорректно обрабатывается пользователь c пустым name");
     }
 
     @Test
     void testBirthdayAfterNow() {
-        User user = User.builder()
+        user = userBuilder
                 .email("test@mail.ru")
                 .name("test")
                 .login("")
@@ -96,12 +98,12 @@ public class UserValidatorTest {
                 .build();
 
         assertThrows(ValidationException.class, () -> UserValidator.validate(user),
-                "Некорректно обрабатывается юзер c датой рождения в будущем");
+                "Некорректно обрабатывается пользователь c датой рождения в будущем");
     }
 
     @Test
     void testValidUser() {
-        User user = User.builder()
+        user = userBuilder
                 .email("test@mail.ru")
                 .name("test")
                 .login("test")
@@ -109,6 +111,6 @@ public class UserValidatorTest {
                 .build();
 
         assertDoesNotThrow(() -> UserValidator.validate(user),
-                "Некорректно обрабатывается валидный юзер");
+                "Некорректно обрабатывается валидный пользователь");
     }
 }
