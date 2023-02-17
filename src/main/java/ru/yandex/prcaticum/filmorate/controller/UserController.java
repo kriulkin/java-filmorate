@@ -1,49 +1,74 @@
 package ru.yandex.prcaticum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.prcaticum.filmorate.exception.NoSuchFriendIdException;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchUserIdException;
 import ru.yandex.prcaticum.filmorate.exception.ValidationException;
 import ru.yandex.prcaticum.filmorate.model.User;
-import ru.yandex.prcaticum.filmorate.validator.UserValidator;
+import ru.yandex.prcaticum.filmorate.service.UserService;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
+
+    private final UserService userService;
 
     @GetMapping
-    public List<User> findAll() {
-        log.debug("Текущее количество юзеров {}", users.size());
-        return new ArrayList<>(users.values());
+    public Collection<User> findAll() {
+        log.debug("Текущее количество юзеров {}", userService.findAll().size());
+        return userService.findAll();
     }
 
     @PostMapping
     public User create(@RequestBody User user) throws ValidationException, ParseException {
         log.debug(user.toString());
-        UserValidator.validate(user);
-        user.setId(User.getCurrentId());
-        users.put(user.getId(), user);
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@RequestBody User user) throws ValidationException, NoSuchUserIdException, ParseException {
         log.debug(user.toString());
-        UserValidator.validate(user);
-        int userId = user.getId();
+        return userService.update(user);
+    }
 
-        if (!users.containsKey(userId)) {
-            throw new NoSuchUserIdException();
-        }
-        users.put(userId, user);
-        return user;
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable("id") Integer userId) throws NoSuchUserIdException {
+        return userService.getUserById(userId);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(
+            @PathVariable("id") Integer userId,
+            @PathVariable("friendId") Integer friendId
+    ) throws NoSuchUserIdException {
+        userService.addFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(
+            @PathVariable("id") Integer userId,
+            @PathVariable("friendId") Integer friendId
+    ) throws NoSuchUserIdException, NoSuchFriendIdException {
+        userService.deleteFriend(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendsList(@PathVariable("id") Integer userId) throws NoSuchUserIdException {
+        return userService.getFriendsList(userId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(
+        @PathVariable("id") Integer userId,
+        @PathVariable("otherId") Integer friendId
+    ) throws NoSuchUserIdException {
+        return userService.getCommonFriends(userId, friendId);
     }
 }
