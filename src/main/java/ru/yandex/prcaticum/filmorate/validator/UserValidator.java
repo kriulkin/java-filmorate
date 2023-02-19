@@ -9,25 +9,32 @@ import java.util.Date;
 import java.time.Instant;
 
 public class UserValidator {
-    public static void validate(User user) throws ValidationException, ParseException {
-        boolean isValid = true;
-        if (user.getEmail() == null
-                || !user.getEmail().contains("@")) {
-            isValid = false;
-        } else if (user.getLogin() == null
-                || user.getLogin().isBlank()
-                || user.getLogin().contains(" ")){
-            isValid = false;
-        } else if (user.getBirthday() == null
-                || new SimpleDateFormat("yyyy-MM-dd").parse(user.getBirthday())
-                .after(Date.from(Instant.now()))) {
-            isValid = false;
-        } else if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
+    public static void validate(User user) {
+        if (user.getEmail() == null ||
+                !user.getEmail().contains("@")
+        ) {
+            throw new ValidationException("Пустой идентификатор почтового ящика");
         }
 
-        if (!isValid) {
-            throw new ValidationException();
+        if (user.getLogin() == null ||
+                user.getLogin().isBlank() ||
+                user.getLogin().contains(" ")
+        ) {
+            throw new ValidationException("Пустое имя пользователя");
+        }
+
+        try {
+            if (user.getBirthday() == null ||
+                    new SimpleDateFormat("yyyy-MM-dd").parse(user.getBirthday()).after(Date.from(Instant.now()))
+            ) {
+                throw new ValidationException("Дата рождения в будущем");
+            }
+        } catch (ParseException e) {
+            throw new ValidationException("Некорректная дата рождения");
+        }
+
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
     }
 }

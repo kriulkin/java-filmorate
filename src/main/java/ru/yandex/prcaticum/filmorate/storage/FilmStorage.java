@@ -2,11 +2,11 @@ package ru.yandex.prcaticum.filmorate.storage;
 
 import ru.yandex.prcaticum.filmorate.model.Film;
 
-import java.util.Map;
+import java.util.List;
 
 public interface FilmStorage {
 
-    Map<Integer,Film> getFilms();
+    List<Film> findAll();
 
     Film get(Integer id);
 

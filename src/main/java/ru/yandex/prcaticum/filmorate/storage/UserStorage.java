@@ -2,11 +2,11 @@ package ru.yandex.prcaticum.filmorate.storage;
 
 import ru.yandex.prcaticum.filmorate.model.User;
 
-import java.util.Map;
+import java.util.List;
 
 public interface UserStorage {
 
-    Map<Integer, User> getUsers();
+    List<User> findAll();
 
     User get(Integer id);
 

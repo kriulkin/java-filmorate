@@ -5,22 +5,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
-    static int currentId = 0;
-    int id;
-    @EqualsAndHashCode.Include private final String email;
-    final String login;
-    String name;
-    final String birthday;
-    final Set<Integer> friends = new HashSet<>();
-
-    public static int getCurrentId() { return ++currentId; }
+    @NonFinal int id;
+    @NonFinal String name;
+    @EqualsAndHashCode.Include String email;
+    String login;
+    String birthday;
+    Set<Integer> friends = new HashSet<>();
 }
+
+
+
+
+

@@ -2,20 +2,17 @@ package ru.yandex.prcaticum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchFriendIdException;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchUserIdException;
-import ru.yandex.prcaticum.filmorate.exception.ValidationException;
+import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.User;
 import ru.yandex.prcaticum.filmorate.storage.UserStorage;
 import ru.yandex.prcaticum.filmorate.validator.UserValidator;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    UserStorage userStorage;
+    private final UserStorage userStorage;
 
     @Autowired
     public UserService(UserStorage userStorage) {
@@ -23,69 +20,62 @@ public class UserService {
     }
 
     public List<User> findAll() {
-        return List.copyOf(userStorage.getUsers().values());
+        return userStorage.findAll();
     }
 
-    public User create(User user) throws ValidationException, ParseException {
+    public User create(User user) {
         UserValidator.validate(user);
         return userStorage.add(user);
     }
 
-    public User update(User user) throws ValidationException, ParseException, NoSuchUserIdException {
+    public User update(User user) {
         UserValidator.validate(user);
 
         if (userStorage.update(user) == null) {
-            throw new NoSuchUserIdException(String.format("Пользователя с id %d не существует", user.getId()));
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", user.getId()));
         }
 
-        return userStorage.update(user);
+        return user;
     }
 
-    public User getUserById(Integer userId) throws NoSuchUserIdException {
+    public User getUserById(Integer userId) {
         if (userStorage.get(userId) == null) {
-            throw new NoSuchUserIdException(String.format("Пользователя с id %d не существует", userId));
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", userId));
         }
 
         return userStorage.get(userId);
     }
 
-    public void addFriend(Integer userId, Integer friendId) throws NoSuchUserIdException {
-        User user1 = checkUserId(userId);
-        User user2 = checkUserId(friendId);
+    public void addFriend(Integer userId, Integer friendId) {
+        User user1 = getUserById(userId);
+        User user2 = getUserById(friendId);
         user1.getFriends().add(friendId);
         user2.getFriends().add(userId);
     }
 
-    public void deleteFriend(Integer userId, Integer friendId) throws NoSuchUserIdException, NoSuchFriendIdException {
-        User user1 = checkUserId(userId);
-        User user2 = checkUserId(friendId);
+    public void deleteFriend(Integer userId, Integer friendId) {
+        User user1 = getUserById(userId);
+        User user2 = getUserById(friendId);
         if (!user1.getFriends().remove(friendId)) {
-            throw new NoSuchFriendIdException(String.format("Пользователя с id %d нет в списке друзей", friendId));
+            throw new NoSuchEntityException(String.format("Пользователя с id %d нет в списке друзей", friendId));
         }
         user2.getFriends().remove(userId);
     }
 
-    public User checkUserId(Integer userId) throws NoSuchUserIdException {
-        User user = userStorage.get(userId);
-        if (user == null) {
-            throw new NoSuchUserIdException(String.format("Пользователя с id %d не существует", userId));
-        }
-        return user;
-    }
 
-    public List<User> getFriendsList(Integer userId) throws NoSuchUserIdException {
-        User user = checkUserId(userId);
+    public List<User> getFriendsList(Integer userId) {
+        User user = getUserById(userId);
         return user.getFriends().stream()
-                .map(id -> userStorage.get(id))
+                .map(userStorage::get)
                 .collect(Collectors.toList());
     }
 
-    public List<User> getCommonFriends(Integer userId, Integer otherId) throws NoSuchUserIdException {
-        User user = checkUserId(userId);
-        User otherUser = checkUserId(otherId);
+    public List<User> getCommonFriends(Integer userId, Integer otherId) {
+        User user = getUserById(userId);
+        User otherUser = getUserById(otherId);
         return user.getFriends().stream()
                 .filter(id -> otherUser.getFriends().contains(id))
-                .map(id -> userStorage.get(id))
+                .map(userStorage::get)
                 .collect(Collectors.toList());
     }
 }

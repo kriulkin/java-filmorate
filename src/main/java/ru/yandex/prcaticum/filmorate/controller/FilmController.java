@@ -3,14 +3,9 @@ package ru.yandex.prcaticum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.prcaticum.filmorate.exception.NoLikeFromUserId;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchFilmIdException;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchUserIdException;
-import ru.yandex.prcaticum.filmorate.exception.ValidationException;
 import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.service.FilmService;
 
-import java.text.ParseException;
 import java.util.*;
 
 @RestController
@@ -18,7 +13,7 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
+
     private final FilmService filmService;
 
     @GetMapping
@@ -28,13 +23,13 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) throws ValidationException, ParseException {
+    public Film create(@RequestBody Film film) {
         log.debug(film.toString());
         return filmService.create(film);
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) throws ValidationException, ParseException, NoSuchFilmIdException {
+    public Film update(@RequestBody Film film) {
         log.debug(film.toString());
         return filmService.update(film);
     }
@@ -47,7 +42,7 @@ public class FilmController {
     public void likeFilm(
             @PathVariable("id") Integer filmId,
             @PathVariable("userId") Integer userId
-    ) throws NoSuchUserIdException, NoSuchFilmIdException {
+    ) {
         filmService.likeFilm(filmId, userId);
     }
 
@@ -55,7 +50,7 @@ public class FilmController {
     public void unlikeFilm(
             @PathVariable("id") Integer filmId,
             @PathVariable("userId") Integer userId
-    ) throws NoLikeFromUserId, NoSuchUserIdException, NoSuchFilmIdException {
+    ) {
         filmService.unlikeFilm(filmId, userId);
     }
 

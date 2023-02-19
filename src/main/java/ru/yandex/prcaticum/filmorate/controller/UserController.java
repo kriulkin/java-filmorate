@@ -3,13 +3,9 @@ package ru.yandex.prcaticum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchFriendIdException;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchUserIdException;
-import ru.yandex.prcaticum.filmorate.exception.ValidationException;
 import ru.yandex.prcaticum.filmorate.model.User;
 import ru.yandex.prcaticum.filmorate.service.UserService;
 
-import java.text.ParseException;
 import java.util.*;
 
 @RestController
@@ -27,19 +23,19 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody User user) throws ValidationException, ParseException {
+    public User create(@RequestBody User user) {
         log.debug(user.toString());
         return userService.create(user);
     }
 
     @PutMapping
-    public User update(@RequestBody User user) throws ValidationException, NoSuchUserIdException, ParseException {
+    public User update(@RequestBody User user) {
         log.debug(user.toString());
         return userService.update(user);
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable("id") Integer userId) throws NoSuchUserIdException {
+    public User getUserById(@PathVariable("id") Integer userId) {
         return userService.getUserById(userId);
     }
 
@@ -47,7 +43,7 @@ public class UserController {
     public void addFriend(
             @PathVariable("id") Integer userId,
             @PathVariable("friendId") Integer friendId
-    ) throws NoSuchUserIdException {
+    ) {
         userService.addFriend(userId, friendId);
     }
 
@@ -55,12 +51,12 @@ public class UserController {
     public void deleteFriend(
             @PathVariable("id") Integer userId,
             @PathVariable("friendId") Integer friendId
-    ) throws NoSuchUserIdException, NoSuchFriendIdException {
+    ) {
         userService.deleteFriend(userId, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriendsList(@PathVariable("id") Integer userId) throws NoSuchUserIdException {
+    public List<User> getFriendsList(@PathVariable("id") Integer userId) {
         return userService.getFriendsList(userId);
     }
 
@@ -68,7 +64,7 @@ public class UserController {
     public List<User> getCommonFriends(
         @PathVariable("id") Integer userId,
         @PathVariable("otherId") Integer friendId
-    ) throws NoSuchUserIdException {
+    ) {
         return userService.getCommonFriends(userId, friendId);
     }
 }

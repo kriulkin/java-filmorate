@@ -9,23 +9,30 @@ import java.text.SimpleDateFormat;
 
 public class FilmValidator {
     private final static String MIN_DATE="1895-12-28";
-    public static void validate(Film film) throws ValidationException, ParseException {
-        boolean isValid = true;
+    public static void validate(Film film){
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-        if (film.getName() == null || film.getName().isBlank()) {
-            isValid = false;
-        } else if (film.getDescription() == null || film.getDescription().length() > 200) {
-            isValid = false;
-        } else if (film.getReleaseDate() == null ||
-                dateFormatter.parse(film.getReleaseDate()).before(dateFormatter.parse(MIN_DATE))) {
-            isValid = false;
-        } else if (film.getDuration() < 1) {
-            isValid = false;
+        if (film.getName() == null ||
+                film.getName().isBlank()) {
+            throw new ValidationException("Пустое имя фильма.");
         }
 
-        if (!isValid) {
-            throw new ValidationException();
+        if (film.getDescription() == null ||
+                film.getDescription().length() > 200) {
+            throw new ValidationException("В описании фильма больше 200 символов.");
+        }
+
+        try {
+            if (film.getReleaseDate() == null ||
+                    dateFormatter.parse(film.getReleaseDate()).before(dateFormatter.parse(MIN_DATE))) {
+                throw new ValidationException("Дата создания фильма раньше 12 декабря 1895 года.");
+            }
+        } catch (ParseException e) {
+            throw new ValidationException("Некорректная дата создания фильма");
+        }
+
+        if (film.getDuration() < 1) {
+            throw new ValidationException("Длительность фильма меньше 1 минуты.");
         }
     }
 }

@@ -2,24 +2,19 @@ package ru.yandex.prcaticum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.prcaticum.filmorate.exception.NoLikeFromUserId;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchFilmIdException;
-import ru.yandex.prcaticum.filmorate.exception.NoSuchUserIdException;
-import ru.yandex.prcaticum.filmorate.exception.ValidationException;
+import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.storage.FilmStorage;
 import ru.yandex.prcaticum.filmorate.validator.FilmValidator;
 
-import java.text.ParseException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
-
-    FilmStorage filmStorage;
-    UserService userService;
+    private final FilmStorage filmStorage;
+    private final UserService userService;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserService userService) {
@@ -28,47 +23,48 @@ public class FilmService {
     }
 
     public List<Film> findAll() {
-        return List.copyOf(filmStorage.getFilms().values());
+        return filmStorage.findAll();
     }
 
-    public Film create(Film film) throws ValidationException, ParseException {
+    public Film create(Film film) {
         FilmValidator.validate(film);
         return filmStorage.add(film);
     }
 
-    public Film update(Film film) throws ValidationException, ParseException, NoSuchFilmIdException {
+    public Film update(Film film) {
         FilmValidator.validate(film);
-        Integer filmId = film.getId();
 
-        if (!filmStorage.getFilms().containsKey(filmId)) {
-            throw new NoSuchFilmIdException(String.format("Фильма с id %d не существует", filmId));
-        }
-
-        return filmStorage.update(film);
-    }
-
-    public Film getFilm(Integer filmId) throws NoSuchFilmIdException {
-        Film film = filmStorage.get(filmId);
-
-        if (film == null) {
-            throw new NoSuchFilmIdException(String.format("Фильма с id %d не существует", filmId));
+        if (filmStorage.update(film) == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", film.getId()));
         }
 
         return film;
     }
-    public void likeFilm(Integer filmId, Integer userId) throws NoSuchUserIdException, NoSuchFilmIdException {
-        userService.checkUserId(userId);
+
+    public Film getFilm(Integer filmId) {
+        Film film = filmStorage.get(filmId);
+
+        if (film == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
+        }
+
+        return film;
+    }
+    public void likeFilm(Integer filmId, Integer userId) {
+        userService.getUserById(userId);
         Film film = getFilm(filmId);
         film.getLikes().add(userId);
     }
 
     public void unlikeFilm(Integer filmId, Integer userId)
-            throws NoLikeFromUserId, NoSuchFilmIdException, NoSuchUserIdException {
-        userService.checkUserId(userId);
+            throws NoSuchEntityException {
+        userService.getUserById(userId);
         Film film = getFilm(filmId);
 
         if (!film.getLikes().remove(userId)) {
-            throw new NoLikeFromUserId(String.format("у фильма с id %d нет лайка от юзера с id %d", filmId, userId));
+            throw new NoSuchEntityException(
+                    String.format("у фильма с id %d нет лайка от юзера с id %d", filmId, userId)
+            );
         }
     }
 
