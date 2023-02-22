@@ -1,6 +1,6 @@
 package ru.yandex.prcaticum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.Film;
@@ -12,15 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-    }
 
     public List<Film> findAll() {
         return filmStorage.findAll();

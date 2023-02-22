@@ -1,6 +1,6 @@
 package ru.yandex.prcaticum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.User;
@@ -11,13 +11,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
-
-    @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
 
     public List<User> findAll() {
         return userStorage.findAll();
