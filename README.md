@@ -5,41 +5,46 @@ Database Scheme
 
 Plotted with [QuickDBD](https://app.quickdatabasediagrams.com/#/) by following code:
 ```
-Film
+film
 -
 film_id PK int
-name varchar
+name varchar(64)
 description varchar(200)
 release_date date
 duration int
-rating enum
+mpa_id int FK >- mpa.mpa_id
 
-User
+user
 -
 user_id PK int
-name varchar
-email varchar
-login varchar
+name varchar(64)
+email varchar(256)
+login varchar(64)
 birthday date
 
-Likes
+like
 -
-user_id int FK >- User.user_id
-film_id int FK >- Film.film_id
+user_id int FK >- user.user_id
+film_id int FK >- film.film_id
 
-Friends
+friend
 -
-user1_id int FK >- User.user_id
-user2_id int FK >- User.user_id
+user1_id int FK >- user.user_id
+user2_id int FK >- user.user_id
 approved boolean
 
-Genre
+genre
 -
 genre_id int PK
-name varchar
+name varchar(64)
 
-FilmGenre
+film_genre
 -
-film_id int FK >- Film.film_id
-genre_id int FK >- Genre.genre_i
+film_id int FK >- film.film_id
+genre_id int FK >- genre.genre_id
+
+mpa
+-
+mpa_id PK int
+name varchar(64)i
 ```
