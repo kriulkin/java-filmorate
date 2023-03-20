@@ -1,6 +1,7 @@
 package ru.yandex.prcaticum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.Film;
@@ -12,10 +13,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
+
     private final UserService userService;
+
+    public FilmService(@Qualifier("inDbFilmStorage") FilmStorage filmStorage, UserService userService) {
+        this.filmStorage = filmStorage;
+        this.userService = userService;
+    }
 
     public List<Film> findAll() {
         return filmStorage.findAll();
@@ -29,11 +35,12 @@ public class FilmService {
     public Film update(Film film) {
         FilmValidator.validate(film);
 
-        if (filmStorage.update(film) == null) {
+        Film resultFilm = filmStorage.update(film);
+        if (resultFilm == null) {
             throw new NoSuchEntityException(String.format("Фильма с id %d не существует", film.getId()));
         }
 
-        return film;
+        return resultFilm;
     }
 
     public Film getFilm(Integer filmId) {
@@ -46,17 +53,29 @@ public class FilmService {
         return film;
     }
     public void likeFilm(Integer filmId, Integer userId) {
-        userService.getUserById(userId);
+        if (userService.getUserById(userId) == null) {
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", userId));
+        }
+
         Film film = getFilm(filmId);
-        film.getLikes().add(userId);
+        if (film == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
+        }
+        filmStorage.likeFilm(filmId, userId);
     }
 
-    public void unlikeFilm(Integer filmId, Integer userId)
-            throws NoSuchEntityException {
-        userService.getUserById(userId);
+    public void unlikeFilm(Integer filmId, Integer userId) {
+        if (userService.getUserById(userId) == null) {
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", userId));
+        }
+
         Film film = getFilm(filmId);
 
-        if (!film.getLikes().remove(userId)) {
+        if (film == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
+        }
+
+        if (!filmStorage.unlikeFilm(filmId, userId)) {
             throw new NoSuchEntityException(
                     String.format("у фильма с id %d нет лайка от юзера с id %d", filmId, userId)
             );
@@ -64,8 +83,8 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(Integer count) {
-        return findAll().stream()
-                .sorted(Comparator.comparing(f -> f.getLikes().size(),Comparator.reverseOrder()))
+        return filmStorage.getPopularFilms()
+                .stream()
                 .limit(count)
                 .collect(Collectors.toList());
     }

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.validator;
+package ru.yandex.prcaticum.filmorate.validator;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.prcaticum.filmorate.exception.ValidationException;
