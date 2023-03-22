@@ -3,11 +3,10 @@ package ru.yandex.prcaticum.filmorate.storage;
 import org.springframework.stereotype.Component;
 import ru.yandex.prcaticum.filmorate.model.Film;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Component
+@Component("inMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private int currentId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
@@ -37,6 +36,25 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film delete(Integer id) {
         return films.remove(id);
+    }
+
+    @Override
+    public void likeFilm(int userId, int filmId) {
+        Film film = get(filmId);
+        film.getLikes().add(userId);
+    }
+
+    @Override
+    public boolean unlikeFilm(int userId, int filmId) {
+        Film film = get(filmId);
+        return film.getLikes().remove(userId);
+    }
+
+    @Override
+    public Collection<Film> getPopularFilms() {
+        return findAll().stream()
+                .sorted(Comparator.comparing(f -> f.getLikes().size(),Comparator.reverseOrder()))
+                .collect(Collectors.toList());
     }
 
     private int getCurrentId() { return ++currentId; }

@@ -1,39 +1,52 @@
 package ru.yandex.prcaticum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
 import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.storage.FilmStorage;
 import ru.yandex.prcaticum.filmorate.validator.FilmValidator;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
-@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final GenreService genreService;
+
     private final UserService userService;
 
+    public FilmService(@Qualifier("inDbFilmStorage") FilmStorage filmStorage, GenreService genreService, UserService userService) {
+        this.filmStorage = filmStorage;
+        this.genreService = genreService;
+        this.userService = userService;
+    }
+
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        List<Film> filmList = filmStorage.findAll();
+        genreService.setFilmsGenres(filmList);
+        return filmList;
     }
 
     public Film create(Film film) {
         FilmValidator.validate(film);
-        return filmStorage.add(film);
+        Film resultFilm = filmStorage.add(film);
+        resultFilm.getGenres().addAll(genreService.getFilmGenres(resultFilm.getId()));
+        return resultFilm;
     }
 
     public Film update(Film film) {
         FilmValidator.validate(film);
 
-        if (filmStorage.update(film) == null) {
+        Film resultFilm = filmStorage.update(film);
+        if (resultFilm == null) {
             throw new NoSuchEntityException(String.format("Фильма с id %d не существует", film.getId()));
         }
-
-        return film;
+        resultFilm.getGenres().addAll(genreService.getFilmGenres(film.getId()));
+        return resultFilm;
     }
 
     public Film getFilm(Integer filmId) {
@@ -43,20 +56,33 @@ public class FilmService {
             throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
         }
 
+        film.getGenres().addAll(genreService.getFilmGenres(filmId));
         return film;
     }
     public void likeFilm(Integer filmId, Integer userId) {
-        userService.getUserById(userId);
+        if (userService.getUserById(userId) == null) {
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", userId));
+        }
+
         Film film = getFilm(filmId);
-        film.getLikes().add(userId);
+        if (film == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
+        }
+        filmStorage.likeFilm(filmId, userId);
     }
 
-    public void unlikeFilm(Integer filmId, Integer userId)
-            throws NoSuchEntityException {
-        userService.getUserById(userId);
+    public void unlikeFilm(Integer filmId, Integer userId) {
+        if (userService.getUserById(userId) == null) {
+            throw new NoSuchEntityException(String.format("Пользователя с id %d не существует", userId));
+        }
+
         Film film = getFilm(filmId);
 
-        if (!film.getLikes().remove(userId)) {
+        if (film == null) {
+            throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
+        }
+
+        if (!filmStorage.unlikeFilm(filmId, userId)) {
             throw new NoSuchEntityException(
                     String.format("у фильма с id %d нет лайка от юзера с id %d", filmId, userId)
             );
@@ -64,9 +90,11 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(Integer count) {
-        return findAll().stream()
-                .sorted(Comparator.comparing(f -> f.getLikes().size(),Comparator.reverseOrder()))
+        List<Film> filmList = filmStorage.getPopularFilms()
+                .stream()
                 .limit(count)
                 .collect(Collectors.toList());
+        genreService.setFilmsGenres(filmList);
+        return filmList;
     }
 }

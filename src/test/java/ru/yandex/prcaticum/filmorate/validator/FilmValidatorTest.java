@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.validator;
+package ru.yandex.prcaticum.filmorate.validator;
 
 import org.junit.jupiter.api.Test;
 import ru.yandex.prcaticum.filmorate.exception.ValidationException;
@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FilmValidatorTest {
-    Film film;
-    Film.FilmBuilder filmBuilder = Film.builder();
+        Film film;
+        Film.FilmBuilder filmBuilder = Film.builder();
 
     @Test
      void testEmptyFilm() {

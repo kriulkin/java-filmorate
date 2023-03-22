@@ -1,16 +1,13 @@
 package ru.yandex.prcaticum.filmorate.model;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -20,7 +17,7 @@ public class User {
     @EqualsAndHashCode.Include String email;
     String login;
     String birthday;
-    Set<Integer> friends = new HashSet<>();
+    Set<Integer> friends;
 }
 
 
