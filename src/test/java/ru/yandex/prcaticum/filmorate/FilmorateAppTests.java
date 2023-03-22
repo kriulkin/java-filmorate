@@ -11,6 +11,7 @@ import ru.yandex.prcaticum.filmorate.model.Genre;
 import ru.yandex.prcaticum.filmorate.model.Mpa;
 import ru.yandex.prcaticum.filmorate.model.User;
 import ru.yandex.prcaticum.filmorate.storage.InDbFilmStorage;
+import ru.yandex.prcaticum.filmorate.storage.InDbGenreStorage;
 import ru.yandex.prcaticum.filmorate.storage.InDbUserStorage;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FilmorateAppTests {
     private final InDbUserStorage userStorage;
     private final InDbFilmStorage filmStorage;
+    private final InDbGenreStorage genreStorage;
     private Film film;
     private User user;
     private final Film.FilmBuilder filmBuilder = Film.builder();
@@ -84,6 +86,7 @@ public class FilmorateAppTests {
         filmStorage.add(makeTestFilm());
 
         film = filmStorage.findAll().stream().findFirst().get();
+        film.getGenres().addAll(genreStorage.getFilmGenres(film.getId()));
 
         assertEquals(film.getName(), "фильм", "Имя фильма не сопадавет");
         assertEquals(film.getDescription(), "обычный фильм", "Описание фильма не сопадавет");
