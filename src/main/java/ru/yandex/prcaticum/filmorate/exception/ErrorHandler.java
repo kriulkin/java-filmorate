@@ -24,12 +24,12 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-//    @ExceptionHandler
-//    @ResponseStatus
-//    public ErrorResponse handle(final Throwable e) {
-//        log.error(String.format("Error: %s", e.getMessage()));
-//        return new ErrorResponse("Произошла непредвиденная ошибка.");
-//    }
+    @ExceptionHandler
+    @ResponseStatus
+    public ErrorResponse handle(final Throwable e) {
+        log.error(String.format("Error: %s", e.getMessage()));
+        return new ErrorResponse("Произошла непредвиденная ошибка.");
+    }
 }
 
 class ErrorResponse {

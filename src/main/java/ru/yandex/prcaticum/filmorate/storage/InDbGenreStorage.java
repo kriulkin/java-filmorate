@@ -1,19 +1,17 @@
 package ru.yandex.prcaticum.filmorate.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
+import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class InDbGenreStorage {
     private final JdbcTemplate jdbcTemplate;
@@ -35,7 +33,7 @@ public class InDbGenreStorage {
         return new HashSet(jdbcTemplate.query("select g.genre_id, g.name from genres g " +
                         "join film_genre fg on g.genre_id = fg.genre_id where fg.film_id = ?" +
                         "order by g.genre_id;",
-                (rs, num) -> get(rs.getInt("genre_id")), filmId).stream().collect(Collectors.toSet()));
+                (rs, num) -> get(rs.getInt("genre_id")), filmId));
     }
 
     public void addFilmGenres(int filmId, Set<Genre> genres) {
@@ -56,5 +54,47 @@ public class InDbGenreStorage {
                 resultSet.getInt("genre_id"),
                 resultSet.getString("name")
         );
+    }
+
+    public void setFilmsGenres(List<Film> films) {
+
+        String sql = "select fg.film_id, fg.genre_id, g.name from film_genre fg join genres g on fg.genre_id=g.genre_id where fg.film_id in (?);";
+        String sqlIn = films.stream()
+                .map(Film::getId)
+                .map(x -> String.valueOf(x))
+                .collect(Collectors.joining(",", "(", ")"));
+
+        sql = sql.replace("(?)", sqlIn);
+
+        List<Map.Entry<Integer, Genre>> list = jdbcTemplate.query(
+                sql,
+                (rs, num) -> Map.entry(rs.getInt("film_id"),
+                        new Genre(rs.getInt("genre_id"),rs.getString("name"))
+                ));
+
+        log.debug(list.toString());
+
+        Map<Integer, Set<Genre>> filmsGenresMap = new HashMap<>();
+
+        for (Map.Entry<Integer,Genre> filmsGenresEntry: list) {
+            Integer filmId = filmsGenresEntry.getKey();
+            Genre genre = filmsGenresEntry.getValue();
+            if (!filmsGenresMap.containsKey(filmId)) {
+                filmsGenresMap.put(filmId, new HashSet<>() {{add(genre);}});
+            } else {
+                Set currentGenres = filmsGenresMap.get(filmId);
+                currentGenres.add(genre);
+                filmsGenresMap.put(filmId, currentGenres);
+            }
+        }
+
+        for (Film film: films) {
+            Set<Genre> filmGenres = film.getGenres();
+            Set<Genre> newFilmGenres = filmsGenresMap.get(film.getId());
+            if (newFilmGenres != null && !newFilmGenres.isEmpty() ) {
+                log.debug(newFilmGenres.toString());
+                filmGenres.addAll(newFilmGenres);
+            }
+        }
     }
 }

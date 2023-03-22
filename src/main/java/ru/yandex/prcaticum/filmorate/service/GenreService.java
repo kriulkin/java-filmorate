@@ -3,10 +3,13 @@ package ru.yandex.prcaticum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
+import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.model.Genre;
 import ru.yandex.prcaticum.filmorate.storage.InDbGenreStorage;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,5 +28,13 @@ public class GenreService {
         }
 
         return genre;
+    }
+
+    public Set<Genre> getFilmGenres(int filmId) {
+        return genreStorage.getFilmGenres(filmId);
+    }
+
+    public void setFilmsGenres(List<Film> films) {
+        genreStorage.setFilmsGenres(films);
     }
 }

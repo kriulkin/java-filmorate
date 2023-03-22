@@ -10,8 +10,8 @@ import ru.yandex.prcaticum.filmorate.model.Genre;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component("inDbFilmStorage")
 @AllArgsConstructor
@@ -23,14 +23,14 @@ public class InDbFilmStorage implements FilmStorage {
     @Override
     public List<Film> findAll() {
         String sql = "select * from films";
-        return List.copyOf(jdbcTemplate.query(sql, (rs, num) -> makeFilm(genreStorage, rs)));
+        return List.copyOf(jdbcTemplate.query(sql, (rs, num) -> makeFilm(rs)));
     }
 
 
     @Override
     public Film get(Integer id) {
         return jdbcTemplate.query("select * from films where film_id = ?;",
-                        (rs, num) -> makeFilm(genreStorage, rs),
+                        (rs, num) -> makeFilm(rs),
                         id
                 )
                 .stream().findFirst().orElse(null);
@@ -127,7 +127,7 @@ public class InDbFilmStorage implements FilmStorage {
         return jdbcTemplate.update("delete from likes where user_id = ? and film_id = ?;", userId, filmId) > 0;
     }
 
-    private Film makeFilm(InDbGenreStorage genreStorage, ResultSet rs) throws SQLException {
+    private Film makeFilm(ResultSet rs) throws SQLException {
         return new Film(
                 rs.getInt("film_id"),
                 rs.getString("name"),
@@ -135,17 +135,16 @@ public class InDbFilmStorage implements FilmStorage {
                 rs.getDate("release_date").toString(),
                 rs.getInt("duration"),
                 mpaStorage.get(rs.getInt("mpa_id")),
-                genreStorage.getFilmGenres(rs.getInt("film_id"))
+                new HashSet<>()
         );
     }
 
     public Collection<Film> getPopularFilms() {
-        return jdbcTemplate.query("select f.film_id, count(l.film_id) cnt from films f " +
+        return jdbcTemplate.query("select f.*, m.mpa_id, count(l.film_id) cnt from films f " +
+                        "join mpa m on f.film_id=m.mpa_id " +
                         "left join likes l on f.film_id=l.film_id " +
                         "group by f.film_id " +
                         "order by cnt DESC;",
-                (rs, num) -> get(rs.getInt("film_id")))
-                .stream()
-                .collect(Collectors.toList());
+                (rs, num) -> makeFilm(rs));
     }
 }

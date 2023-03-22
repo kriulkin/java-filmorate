@@ -2,7 +2,6 @@ package ru.yandex.prcaticum.filmorate.storage;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.prcaticum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;

@@ -2,7 +2,6 @@ package ru.yandex.prcaticum.filmorate.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.stereotype.Component;
 
 @Data
 @EqualsAndHashCode

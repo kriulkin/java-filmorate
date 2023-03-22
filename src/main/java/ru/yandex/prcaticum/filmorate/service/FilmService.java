@@ -1,6 +1,6 @@
 package ru.yandex.prcaticum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.prcaticum.filmorate.exception.NoSuchEntityException;
@@ -8,28 +8,34 @@ import ru.yandex.prcaticum.filmorate.model.Film;
 import ru.yandex.prcaticum.filmorate.storage.FilmStorage;
 import ru.yandex.prcaticum.filmorate.validator.FilmValidator;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final GenreService genreService;
 
     private final UserService userService;
 
-    public FilmService(@Qualifier("inDbFilmStorage") FilmStorage filmStorage, UserService userService) {
+    public FilmService(@Qualifier("inDbFilmStorage") FilmStorage filmStorage, GenreService genreService, UserService userService) {
         this.filmStorage = filmStorage;
+        this.genreService = genreService;
         this.userService = userService;
     }
 
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        List<Film> filmList = filmStorage.findAll();
+        genreService.setFilmsGenres(filmList);
+        return filmList;
     }
 
     public Film create(Film film) {
         FilmValidator.validate(film);
-        return filmStorage.add(film);
+        Film resultFilm = filmStorage.add(film);
+        resultFilm.getGenres().addAll(genreService.getFilmGenres(resultFilm.getId()));
+        return resultFilm;
     }
 
     public Film update(Film film) {
@@ -39,7 +45,7 @@ public class FilmService {
         if (resultFilm == null) {
             throw new NoSuchEntityException(String.format("Фильма с id %d не существует", film.getId()));
         }
-
+        resultFilm.getGenres().addAll(genreService.getFilmGenres(film.getId()));
         return resultFilm;
     }
 
@@ -50,6 +56,7 @@ public class FilmService {
             throw new NoSuchEntityException(String.format("Фильма с id %d не существует", filmId));
         }
 
+        film.getGenres().addAll(genreService.getFilmGenres(filmId));
         return film;
     }
     public void likeFilm(Integer filmId, Integer userId) {
@@ -83,9 +90,11 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(Integer count) {
-        return filmStorage.getPopularFilms()
+        List<Film> filmList = filmStorage.getPopularFilms()
                 .stream()
                 .limit(count)
                 .collect(Collectors.toList());
+        genreService.setFilmsGenres(filmList);
+        return filmList;
     }
 }
